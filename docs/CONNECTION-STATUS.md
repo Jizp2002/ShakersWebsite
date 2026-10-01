@@ -50,3 +50,7 @@ Cloudflare elegido para alojamiento gratuito. La CLI requiere iniciar sesión en
 Configuración guardada por el propietario y verificada después de recargar el panel: SMTP personalizado activo, `smtp.gmail.com`, puerto 465, remitente `Shakers · Comunidad` y cuenta `ijupiter226@gmail.com`. La contraseña de aplicación se introdujo directamente en Supabase; no se copió al proyecto ni a la conversación.
 
 Prueba desde el formulario real de Shakers: solicitud de enlace a `jisaac226@gmail.com` aceptada sin error. El destinatario debe confirmar recepción (incluido spam) y abrir el enlace en el mismo navegador. La aceptación de la solicitud no demuestra por sí sola entrega en bandeja de entrada. No se ha publicado el sitio; se mantiene la prioridad de verificar correo antes del alojamiento.
+
+## Producción en Netlify
+
+El propietario informa que ya publicó en Netlify y solicita actualizar mediante push a `Jizp2002/ShakersWebsite/main`. Se corrigió el fallback automático a demo, se añadió `.env.production` con configuración exclusivamente pública y `netlify.toml` con la compilación. Pendiente conocer la URL exacta para verificar el despliegue remoto y sus redirects de Auth. No afirmar prueba de acceso desde producción hasta verificar ese dominio.

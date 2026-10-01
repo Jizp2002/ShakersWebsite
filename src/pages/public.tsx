@@ -299,15 +299,10 @@ export function Privacy() {
       </p>
       <h2>Servicios y almacenamiento</h2>
       <p>
-        La versión conectada utiliza Cloudflare para el website, Supabase para cuentas y datos, y
-        Resend para los códigos de acceso por correo. Los videos se cargan desde YouTube solo al
-        abrirlos. La aplicación conserva la sesión y tu preferencia de tema en el dispositivo; los
-        datos privados no se guardan en la caché sin conexión.
-      </p>
-      <p>
-        En modo demo todos los datos son ilustrativos y se guardan en este navegador. Evita
-        introducir información personal real en la demostración. El botón «Restaurar demo» elimina
-        los cambios locales.
+        Shakers utiliza Netlify para el website, Supabase para cuentas y datos, y Gmail como
+        proveedor SMTP de los enlaces de acceso por correo. Los videos se cargan desde YouTube solo
+        al abrirlos. La aplicación conserva la sesión y tu preferencia de tema en el dispositivo;
+        los datos privados no se guardan en la caché sin conexión.
       </p>
       <Link to="/" className="text-link">
         Volver al inicio <ArrowRight size={18} />

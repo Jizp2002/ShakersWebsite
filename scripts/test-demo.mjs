@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 const env = {
   ...process.env,
+  VITE_ENABLE_DEMO: 'true',
   VITE_SUPABASE_URL: '',
   VITE_SUPABASE_ANON_KEY: '',
   VITE_TURNSTILE_SITE_KEY: '',

@@ -9,7 +9,7 @@ Requiere Node.js 22.18 o posterior.
     npm ci
     npm run dev
 
-Abre http://localhost:5173. Sin variables de Supabase se presenta una **demo identificada**, con personas y actividades ficticias. En «Entrar» puedes probar joven, líder, coordinador o solicitud pendiente. Los cambios se guardan en este navegador y se pueden restablecer. No introduzcas datos personales reales en la demo.
+Abre http://localhost:5173 con tu conexión de Supabase en `.env.local`. Producción usa la configuración pública de `.env.production`; nunca activa una demo si falta el backend. Las pruebas de interfaz habilitan datos ficticios explícitamente en una compilación separada.
 
 Para probar instalación y recuperación sin conexión:
 
@@ -83,3 +83,12 @@ Antes del lanzamiento, completa el contacto de coordinación en la página de pr
 Fotografías ilustrativas de Unsplash descargadas localmente: photo-1524368535928-5b5e00ddc76b (concierto), photo-1529156069898-49953e39b3ac (amistad) y photo-1504052434569-70ad5836ab65 (estudio).
 
 Inter y Poppins se distribuyen localmente mediante Fontsource con sus licencias incluidas. No se cargan fuentes desde Google al visitar la aplicación.
+
+
+## Publicación actual: Netlify
+
+El repositorio `Jizp2002/ShakersWebsite`, rama `main`, alimenta Netlify. Después de verificar cambios, hacer commit y `git push origin main`. `netlify.toml` define Node 22, la compilación y `dist`; `public/_redirects` conserva las rutas SPA.
+
+`.env.production` contiene únicamente la URL y clave **pública** de Supabase y opciones del cliente. Es deliberadamente versionado para evitar despliegues sin conexión. `.env.local` y las credenciales de servidor siguen excluidas. Nunca añadir claves SMTP, service_role o tokens administrativos. Variables definidas explícitamente en Netlify pueden sobrescribir los valores; no dejarlas vacías.
+
+La demo solo se activa con `VITE_ENABLE_DEMO=true` y ambas variables de Supabase vacías en las pruebas locales. Una compilación de Netlify rechaza esa configuración. El sitio publicado no ofrece acceso por roles ficticios.

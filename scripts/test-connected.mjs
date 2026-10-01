@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 const env = {
   ...process.env,
+  VITE_ENABLE_DEMO: 'false',
   VITE_SUPABASE_URL: 'https://shakers-test.supabase.co',
   VITE_SUPABASE_ANON_KEY: 'public-test-key',
   VITE_TURNSTILE_SITE_KEY: '',

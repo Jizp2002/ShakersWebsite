@@ -64,18 +64,17 @@ Vuelve a abrir la aplicación. Los siguientes permisos se gestionan desde Admini
 
 Los miembros de 13–17 años requieren confirmación de su responsable y no pueden recibir permisos de liderazgo.
 
-## Cloudflare
+## Netlify (alojamiento actual)
 
-La aplicación utiliza Workers Static Assets; los datos permanecen en Supabase. No requiere un servidor Node permanente.
+1. Conecta el proyecto de Netlify a `Jizp2002/ShakersWebsite`, rama `main`.
+2. `netlify.toml` fija Node 22.18.0, `npm run build` y salida `dist`.
+3. La configuración pública de Supabase está en `.env.production`. No añadir contraseñas ni claves de servidor. Si existen variables en el panel de Netlify, comprobar que no estén vacías ni apunten a otro proyecto.
+4. Después de verificar cambios, crear commit y ejecutar `git push origin main`.
+5. Confirmar en Netlify que el despliegue de ese commit está publicado; un push correcto por sí solo no demuestra que Netlify terminó.
+6. Configurar en Supabase Site URL con el dominio HTTPS real y permitir `https://DOMINIO/entrar**` en Redirect URLs. Conservar localhost para desarrollo.
+7. Probar `/entrar`, una ruta directa y acceso por correo desde el dominio publicado. Si la PWA ofrece actualizar, aceptar la actualización para dejar la compilación anterior.
 
-1. Autentica Wrangler con la cuenta del ministerio.
-2. Configura .env.local con las variables públicas reales.
-3. Ejecuta npm run deploy. Compila dist y publica usando wrangler.jsonc.
-4. Asocia tu dominio y comprueba HTTPS.
-5. Actualiza Site URL, redirects y orígenes OAuth.
-6. Recarga una ruta directa como /app/agenda para verificar el fallback SPA.
-
-Guarda credenciales de publicación en secretos del proveedor. No agregues tokens de Cloudflare, claves SMTP o service_role al repositorio.
+Las compilaciones con conexión incompleta fallan en lugar de mostrar una demo. Los datos de prueba solo se habilitan explícitamente en las pruebas locales.
 
 ## Contenido y piloto
 
