@@ -2724,17 +2724,20 @@ textarea::placeholder {
   font-size: 12px;
 }
 .skip-link {
-  position: fixed;
+  position: absolute;
   top: -100px;
   left: 20px;
   z-index: 200;
-  padding: 15px;
+  padding: 12px 18px;
   background: var(--surface);
   color: var(--purple);
   border: 2px solid var(--purple);
   border-radius: 8px;
+  font-size: 13px;
+  text-decoration: none;
 }
-.skip-link:focus {
+.skip-link:focus,
+.skip-link:focus-visible {
   top: 15px;
 }
 @media (min-width: 1500px) {
@@ -4115,5 +4118,297 @@ h2 {
   }
   .share-actions .button {
     flex: 1;
+  }
+}
+
+/* Touch layouts preserve the same administration actions at every viewport. */
+.password-field {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+.password-field input {
+  padding-right: 52px !important;
+}
+.password-field .icon-button {
+  position: absolute;
+  right: 4px;
+  top: 8px;
+}
+.field-hint {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 12px;
+  background: var(--bg);
+  margin: 24px 0 18px;
+}
+.auth-tabs button {
+  min-height: 48px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.auth-tabs button[aria-pressed='true'] {
+  background: var(--purple);
+  color: white;
+}
+.auth-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+.auth-help .text-link {
+  min-height: 44px;
+  text-align: left;
+}
+.auth-form,
+.app-main,
+.app-content,
+.panel,
+.editor-fields > *,
+.modal-inner {
+  min-width: 0;
+}
+.admin-access {
+  white-space: nowrap;
+  gap: 6px;
+}
+.modal {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-heading {
+  position: sticky;
+  top: -28px;
+  background: var(--surface);
+  z-index: 2;
+  padding: 12px 0;
+}
+.modal-heading .icon-button {
+  flex-shrink: 0;
+}
+.editor-actions {
+  flex-wrap: wrap;
+}
+.row-actions {
+  max-width: 100%;
+}
+.row-actions select,
+.select-inline select {
+  min-width: 0;
+  max-width: 100%;
+}
+.profile-settings {
+  flex-wrap: wrap;
+}
+.profile-settings > div {
+  min-width: 0;
+  flex: 1 1 230px;
+}
+.profile-settings-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.request-person > div,
+.overview-row > span,
+.attendance-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1024px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+    min-height: 100dvh;
+  }
+  .auth-art {
+    display: none;
+  }
+  .auth-panel {
+    padding: 26px max(20px, env(safe-area-inset-left));
+  }
+  .auth-form {
+    max-width: 480px;
+    margin: 28px auto;
+    width: 100%;
+  }
+  input:not([type='checkbox']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+    max-width: 100%;
+    min-width: 0;
+  }
+  input[type='datetime-local'],
+  input[type='date'] {
+    min-height: 48px;
+    appearance: none;
+  }
+  .select-inline {
+    flex-wrap: wrap;
+  }
+  .select-inline select {
+    width: 100%;
+  }
+  .page-heading,
+  .admin-section-heading {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 680px) {
+  .public-header {
+    height: auto;
+    min-height: 74px;
+    position: relative;
+  }
+  .header-inner {
+    padding: 12px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .header-inner > .brand {
+    font-size: 24px;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .desktop-login {
+    display: inline-flex;
+    font-size: 12px;
+    padding: 10px;
+    min-height: 44px;
+  }
+  .desktop-login > svg {
+    display: none;
+  }
+  .public-nav.open {
+    top: calc(100% + 6px);
+  }
+  .public-header .header-actions > .icon-button:not(.menu-toggle) {
+    display: none;
+  }
+  .app-header {
+    padding: 12px;
+    height: auto;
+    min-height: 72px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .app-header .brand.small {
+    font-size: 23px;
+  }
+  .app-header .header-actions {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+  .admin-access {
+    font-size: 11px;
+    padding: 9px;
+  }
+  .app-content {
+    padding: 24px 16px 32px;
+  }
+  .admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-right: 0;
+    padding-right: 0;
+    overflow: visible;
+  }
+  .admin-tabs button {
+    min-width: 0;
+    white-space: normal;
+    text-align: left;
+  }
+  .admin-section-heading {
+    align-items: flex-start;
+  }
+  .admin-section-heading .button {
+    font-size: 12px;
+    min-height: 44px;
+  }
+  .panel,
+  .admin-row,
+  .member-request {
+    padding: 16px;
+  }
+  .row-actions {
+    flex: 1 1 100%;
+  }
+  .row-actions .button {
+    white-space: normal;
+  }
+  .editor-actions .button {
+    flex: 1 1 130px;
+    min-height: 48px;
+  }
+  .modal,
+  .modal.wide {
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 16px;
+  }
+  .modal-inner {
+    padding: 18px;
+  }
+  .modal-heading {
+    top: -18px;
+  }
+  .editor-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .editor-fields label {
+    grid-column: 1 / -1;
+  }
+  .bottom-nav a {
+    min-width: 0;
+    flex: 1;
+    padding: 4px 2px;
+  }
+  .gate-card {
+    padding: 22px 18px;
+  }
+  .check-label {
+    align-items: flex-start;
+  }
+  .check-label > span {
+    flex: 1;
+    min-width: 0;
+  }
+  .profile-settings .button {
+    width: 100%;
+  }
+  .profile-settings-actions {
+    width: 100%;
+  }
+  .profile-settings-actions .button {
+    flex: 1 1 140px;
+  }
+  .legal-note,
+  .notice,
+  .auth-note {
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 360px) {
+  .app-header .brand.small .brand-mark {
+    display: none;
+  }
+  .app-header .header-actions > .icon-button {
+    width: 40px;
+    min-width: 40px;
+  }
+  .public-header .brand-mark {
+    display: none;
   }
 }

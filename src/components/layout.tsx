@@ -49,7 +49,7 @@ export function PublicLayout() {
               to={userId ? '/app' : '/entrar'}
               className="button button-small button-outline desktop-login"
             >
-              {userId ? 'Mi comunidad' : 'Entrar'}
+              {userId ? 'Mi comunidad' : 'Iniciar sesión'}
               <ArrowUpRight size={16} />
             </Link>
             <button
@@ -105,6 +105,7 @@ export function AppLayout() {
   const { profile, membership } = useMe();
   const { logout, toast } = useStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const signout = async () => {
     try {
       await logout();
@@ -163,11 +164,26 @@ export function AppLayout() {
           </div>
           <div className="header-actions">
             <Notifications />
-            {staff && (
-              <Link className="icon-button" to="/admin" aria-label="Administración">
-                <ShieldCheck size={19} />
-              </Link>
-            )}
+            {staff &&
+              (location.pathname.startsWith('/admin') ? (
+                <Link
+                  className="button button-small button-outline admin-access"
+                  to="/app"
+                  aria-label="Volver a mi comunidad"
+                >
+                  <ArrowLeft size={17} />
+                  <span>Mi comunidad</span>
+                </Link>
+              ) : (
+                <Link
+                  className="button button-small button-outline admin-access"
+                  to="/admin"
+                  aria-label="Administración"
+                >
+                  <ShieldCheck size={19} />
+                  <span>Administrar</span>
+                </Link>
+              ))}
             <ThemeToggle />
             <Link to="/app/mi-espacio" className="profile-link" aria-label="Mi perfil">
               <Avatar value={profile?.avatar_url || null} name={profile?.name || 'Mi perfil'} />

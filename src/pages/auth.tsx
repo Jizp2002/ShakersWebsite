@@ -14,6 +14,7 @@ import { Brand, ErrorText, Tag, useAction } from '../components/ui';
 import { useMe, useStore } from '../lib/store';
 import { isDemo, supabase } from '../lib/supabase';
 import { safeNext } from '../lib/utils';
+import { PasswordAccess } from '../components/password-access';
 import type { Role } from '../types';
 
 declare global {
@@ -68,6 +69,8 @@ export function Login() {
   const navigate = useNavigate();
   const requested = new URLSearchParams(location.search).get('next');
   const next = safeNext(requested);
+  const recovery = new URLSearchParams(location.search).get('recovery') === '1';
+  const [linkAccess, setLinkAccess] = useState(false);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
@@ -80,7 +83,8 @@ export function Login() {
     const t = setTimeout(() => setCooldown(cooldown - 1), 1000);
     return () => clearTimeout(t);
   }, [cooldown]);
-  if (userId) return <Navigate to={membership?.status === 'approved' ? next : '/app'} replace />;
+  if (userId && !recovery)
+    return <Navigate to={membership?.status === 'approved' ? next : '/app'} replace />;
   const emailLogin = async () => {
     const ok = await act(async () => {
       const { error: e } = await supabase!.auth.signInWithOtp({
@@ -184,8 +188,24 @@ export function Login() {
                 ))}
               </div>
             </>
+          ) : !linkAccess || recovery ? (
+            <PasswordAccess
+              next={next}
+              recovery={recovery}
+              captcha={captcha}
+              captchaReady={!import.meta.env.VITE_TURNSTILE_SITE_KEY || Boolean(captcha)}
+              resetCaptcha={() => {
+                setCaptcha('');
+                setCaptchaVersion((v) => v + 1);
+              }}
+              captchaElement={<Captcha onToken={setCaptcha} version={captchaVersion} />}
+              onLink={() => setLinkAccess(true)}
+            />
           ) : (
             <>
+              <button className="text-link" onClick={() => setLinkAccess(false)}>
+                Usar correo y contraseña
+              </button>
               {googleEnabled && (
                 <>
                   <button
@@ -323,6 +343,18 @@ export function MembershipGate() {
   const [name, setName] = useState(profile?.name || '');
   const [age, setAge] = useState<'13-17' | '18+'>('18+');
   const [interests, setInterests] = useState('');
+  const [requestedRole, setRequestedRole] = useState<'member' | 'leader'>('member');
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (active && data.user?.user_metadata.requested_role === 'leader')
+        setRequestedRole('leader');
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   if (!userId)
     return <Navigate to={`/entrar?next=${encodeURIComponent(window.location.pathname)}`} replace />;
   const blocked = membership && ['pending', 'suspended', 'rejected'].includes(membership.status);
@@ -373,6 +405,7 @@ export function MembershipGate() {
                       p_name: name,
                       p_age_group: age,
                       p_interests: interests,
+                      p_requested_role: requestedRole,
                     }),
                   'Solicitud enviada.',
                 );
@@ -391,11 +424,34 @@ export function MembershipGate() {
               </label>
               <label>
                 Franja de edad
-                <select value={age} onChange={(e) => setAge(e.target.value as typeof age)}>
+                <select
+                  value={age}
+                  onChange={(e) => {
+                    setAge(e.target.value as typeof age);
+                    if (e.target.value === '13-17') setRequestedRole('member');
+                  }}
+                >
                   <option value="18+">Tengo 18 años o más</option>
                   <option value="13-17">Tengo entre 13 y 17 años</option>
                 </select>
               </label>
+              <label>
+                Quiero participar como
+                <select
+                  value={requestedRole}
+                  onChange={(e) => setRequestedRole(e.target.value as 'member' | 'leader')}
+                >
+                  <option value="member">Joven</option>
+                  <option value="leader" disabled={age === '13-17'}>
+                    Líder (18 años o más)
+                  </option>
+                </select>
+              </label>
+              {requestedRole === 'leader' && (
+                <p className="notice">
+                  La coordinación revisará tu solicitud antes de conceder permisos de líder.
+                </p>
+              )}
               <label>
                 Intereses <span className="muted">(opcional)</span>
                 <textarea

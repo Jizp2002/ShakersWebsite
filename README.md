@@ -84,7 +84,6 @@ Fotografías ilustrativas de Unsplash descargadas localmente: photo-152436853592
 
 Inter y Poppins se distribuyen localmente mediante Fontsource con sus licencias incluidas. No se cargan fuentes desde Google al visitar la aplicación.
 
-
 ## Publicación actual: Netlify
 
 El repositorio `Jizp2002/ShakersWebsite`, rama `main`, alimenta Netlify. Después de verificar cambios, hacer commit y `git push origin main`. `netlify.toml` define Node 22, la compilación y `dist`; `public/_redirects` conserva las rutas SPA.

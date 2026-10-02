@@ -54,6 +54,7 @@ export function Provider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const generation = useRef(0);
+  const sessionUser = useRef<string | null | undefined>(undefined);
   const lock = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const toast = useCallback((m: string) => {
@@ -112,7 +113,15 @@ export function Provider({ children }: { children: ReactNode }) {
     }
     const {
       data: { subscription },
-    } = supabase!.auth.onAuthStateChange((_event, session) => {
+    } = supabase!.auth.onAuthStateChange((event, session) => {
+      const id = session?.user.id ?? null;
+      // Token refreshes and focus events must not destroy open forms or password recovery.
+      if (
+        sessionUser.current === id &&
+        ['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)
+      )
+        return;
+      sessionUser.current = id;
       generation.current++;
       setData(emptyData());
       setUserId(session?.user.id ?? null);
@@ -220,11 +229,16 @@ export function Provider({ children }: { children: ReactNode }) {
           p.name = String(args.p_name).trim();
           p.age_group = args.p_age_group as '13-17' | '18+';
           p.interests = String(args.p_interests || '');
-          if (me) me.status = 'pending';
-          else
+          if (args.p_requested_role === 'leader' && p.age_group !== '18+')
+            throw new Error('El liderazgo requiere ser adulto.');
+          if (me) {
+            me.status = 'pending';
+            me.requested_role = args.p_requested_role === 'leader' ? 'leader' : 'member';
+          } else
             d.memberships.push({
               id: userId,
               role: 'member',
+              requested_role: args.p_requested_role === 'leader' ? 'leader' : 'member',
               status: 'pending',
               guardian_confirmed: false,
               created_at: now,
@@ -243,6 +257,10 @@ export function Provider({ children }: { children: ReactNode }) {
         case 'review_member': {
           if (!staff) throw new Error('No tienes permiso.');
           const m = d.memberships.find((m) => m.id === args.p_user_id)!;
+          if (args.p_role === 'admin' || m.role === 'admin')
+            throw new Error('El acceso de coordinación está reservado.');
+          if (!admin && m.requested_role === 'leader')
+            throw new Error('Solo coordinación revisa solicitudes de líder.');
           if (m.id === userId || (!admin && (m.status !== 'pending' || args.p_role !== 'member')))
             throw new Error('Acción no permitida.');
           if (

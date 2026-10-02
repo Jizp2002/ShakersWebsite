@@ -1,7 +1,7 @@
 import { GalleryManager } from '../components/gallery';
 import { Avatar } from '../components/photo';
-import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
   CalendarDays,
   Camera,
@@ -62,8 +62,19 @@ const names: Record<Editable, string> = {
 export function Admin() {
   const { data, userId, rpc, save } = useStore();
   const { membership } = useMe();
-  const [tab, setTab] = useState('Resumen');
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const [tab, setTab] = useState(urlTab || 'Resumen');
   const [edit, setEdit] = useState<{ table: Editable; row?: Values } | null>(null);
+
+  useEffect(() => {
+    if (urlTab) setTab(urlTab);
+    if (searchParams.get('action') === 'new') {
+      const targetTable = (searchParams.get('table') as Editable) || 'events';
+      setEdit({ table: targetTable });
+    }
+  }, [searchParams, urlTab]);
+
   const [selectedEvent, setSelectedEvent] = useState('');
   const [guardian, setGuardian] = useState<Record<string, boolean>>({});
   const { act, error, pending } = useAction();
@@ -76,7 +87,9 @@ export function Admin() {
   const profile = (id: string) => data.profiles.find((p) => p.id === id);
   const memberName = (id: string) => profile(id)?.name || 'Miembro';
   const manageTeams = data.teams.filter((t) => admin || t.leader_id === userId);
-  const pendingMembers = data.memberships.filter((m) => m.status === 'pending');
+  const pendingMembers = data.memberships.filter(
+    (m) => m.status === 'pending' && (admin || m.requested_role !== 'leader'),
+  );
   const reviewPrayers = data.prayers.filter(
     (p) => (admin || p.visibility === 'community') && p.status === 'pending',
   );
@@ -462,7 +475,9 @@ export function Admin() {
                       {profile(m.id)?.interests || 'Sin intereses añadidos'}
                     </p>
                   </div>
-                  <Tag color="orange">Pendiente</Tag>
+                  <Tag color="orange">
+                    {m.requested_role === 'leader' ? 'Solicita ser líder' : 'Joven · Pendiente'}
+                  </Tag>
                 </div>
                 {profile(m.id)?.age_group === '13-17' && (
                   <label className="check-label">
@@ -484,14 +499,15 @@ export function Admin() {
                           rpc('review_member', {
                             p_user_id: m.id,
                             p_status: 'approved',
-                            p_role: 'member',
+                            p_role: admin && m.requested_role === 'leader' ? 'leader' : 'member',
                             p_guardian: guardian[m.id] || false,
                           }),
                         'Nuevo miembro aprobado.',
                       )
                     }
                   >
-                    <Check size={16} /> Aprobar ingreso
+                    <Check size={16} />{' '}
+                    {m.requested_role === 'leader' ? 'Aprobar como líder' : 'Aprobar ingreso'}
                   </button>
                   <button
                     className="button button-quiet button-small"
@@ -538,7 +554,7 @@ export function Admin() {
                       · {statusLabel(m.status)}
                     </p>
                   </div>
-                  {admin && m.id !== userId && (
+                  {admin && m.id !== userId && m.role !== 'admin' && (
                     <div className="row-actions">
                       <select
                         aria-label={`Rol de ${memberName(m.id)}`}
@@ -560,7 +576,6 @@ export function Admin() {
                       >
                         <option value="member">Miembro</option>
                         <option value="leader">Líder</option>
-                        <option value="admin">Coordinador</option>
                       </select>
                       <button
                         className="button button-small button-outline"

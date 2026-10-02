@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Download, LogOut, Pencil, Users, X } from 'lucide-react';
+import { Check, Download, LogOut, Pencil, Plus, ShieldCheck, Users, X } from 'lucide-react';
 import { useMe, useStore } from '../lib/store';
 import { date, initials } from '../lib/utils';
 import {
@@ -15,11 +15,13 @@ import {
 import { Avatar, PhotoCropper } from '../components/photo';
 import { photoBlob, removePhoto, uploadPhoto, type Crop } from '../lib/photos';
 import type { Profile } from '../types';
+import { isDemo } from '../lib/supabase';
 import { InstallButton } from '../components/pwa';
 
 export function ProfilePage() {
   const { data, userId, rpc, logout } = useStore();
   const { profile, membership } = useMe();
+  const staff = membership?.role === 'admin' || membership?.role === 'leader';
   const { act, error, pending } = useAction();
   const [editing, setEditing] = useState(false);
   const teams = data.teams.filter((t) =>
@@ -203,6 +205,33 @@ export function ProfilePage() {
         </div>
         <InstallButton />
       </section>
+      {staff && (
+        <section className="profile-settings">
+          <div>
+            <h3>Panel de administración</h3>
+            <p>Crea encuentros, gestiona asistencia, revisa miembros y modera contenidos.</p>
+          </div>
+          <div className="profile-settings-actions">
+            <Link className="button button-primary" to="/admin?tab=Encuentros&action=new">
+              <Plus size={16} /> Crear encuentro
+            </Link>
+            <Link className="button button-outline" to="/admin">
+              <ShieldCheck size={16} /> Ver administración
+            </Link>
+          </div>
+        </section>
+      )}
+      {!isDemo && (
+        <section className="profile-settings">
+          <div>
+            <h3>Seguridad de tu cuenta</h3>
+            <p>Configura una contraseña para entrar sin pedir un enlace cada vez.</p>
+          </div>
+          <Link className="button button-outline" to="/entrar?recovery=1">
+            Crear o cambiar contraseña
+          </Link>
+        </section>
+      )}
       <button className="text-link logout" onClick={() => void act(logout)}>
         <LogOut size={17} /> Cerrar sesión
       </button>

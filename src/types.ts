@@ -8,6 +8,7 @@ export interface Profile {
   avatar_url: string | null;
 }
 export interface Membership {
+  requested_role?: 'member' | 'leader';
   id: string;
   role: Role;
   status: Status;

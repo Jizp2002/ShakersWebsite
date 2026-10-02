@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   List,
   MapPin,
+  Plus,
   Search,
   Users,
 } from 'lucide-react';
@@ -23,6 +24,8 @@ import { Empty, ErrorText, EventCard, PageHeading, Tag, useAction } from '../com
 
 export function Agenda({ publicOnly = false }: { publicOnly?: boolean }) {
   const { data } = useStore();
+  const { membership } = useMe();
+  const staff = !publicOnly && (membership?.role === 'admin' || membership?.role === 'leader');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
   const [view, setView] = useState('list');
@@ -52,6 +55,13 @@ export function Agenda({ publicOnly = false }: { publicOnly?: boolean }) {
         eyebrow="HAY ALGO BUENO POR VIVIR"
         title="Hagamos espacio para encontrarnos."
         description="Encuentra tu próximo plan. Nos encantará verte ahí."
+        action={
+          staff ? (
+            <Link to="/admin?tab=Encuentros&action=new" className="button button-primary">
+              <Plus size={16} /> Crear encuentro
+            </Link>
+          ) : undefined
+        }
       />
       <div className="filter-bar">
         <div className="chips">

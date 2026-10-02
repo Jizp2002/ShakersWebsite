@@ -34,13 +34,9 @@ function Scroll() {
     if (hash)
       setTimeout(
         () =>
-          document
-            .getElementById(hash.slice(1))
-            ?.scrollIntoView({
-              behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
-                ? 'instant'
-                : 'smooth',
-            }),
+          document.getElementById(hash.slice(1))?.scrollIntoView({
+            behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+          }),
         50,
       );
     else window.scrollTo(0, 0);

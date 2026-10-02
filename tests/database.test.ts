@@ -35,6 +35,9 @@ beforeAll(async () => {
   await db.exec(
     await readFile('supabase/migrations/20261001183459_profile_photos_gallery.sql', 'utf8'),
   );
+  await db.exec(
+    await readFile('supabase/migrations/20261002003551_membership_role_requests.sql', 'utf8'),
+  );
   for (const [i, name, role, status, age] of [
     [1, 'Coordinador', 'admin', 'approved', '18+'],
     [2, 'Líder', 'leader', 'approved', '18+'],
@@ -405,5 +408,43 @@ describe('Profile photos and event galleries', () => {
     expect(await asUser(other, 'select * from public.gallery_photos')).toHaveLength(0);
     await asUser(leader, 'delete from public.gallery_photos where id=$1', [photo]);
     await asUser(leader, "delete from storage.objects where bucket_id='gallery'");
+  });
+});
+
+describe('Requested roles and coordinator access', () => {
+  it('stores a leader request without granting leadership and requires coordinator review', async () => {
+    const newcomer = id(900);
+    await db.query('insert into auth.users(id) values($1)', [newcomer]);
+    await asUser(newcomer, "select public.submit_membership('Nueva persona','18+','','leader')");
+    const rows = await asUser(
+      newcomer,
+      'select role,requested_role,status from public.memberships where id=$1',
+      [newcomer],
+    );
+    expect(rows[0]).toMatchObject({ role: 'member', requested_role: 'leader', status: 'pending' });
+    await expect(
+      asUser(leader, "select public.review_member($1,'approved','member',false)", [newcomer]),
+    ).rejects.toThrow(/coordinación/);
+    await asUser(admin, "select public.review_member($1,'approved','leader',false)", [newcomer]);
+    expect(
+      (await asUser(newcomer, 'select role from public.memberships where id=$1', [newcomer]))[0]
+        .role,
+    ).toBe('leader');
+  });
+  it('rejects admin registration, minor leadership and assigning additional coordinators', async () => {
+    const newcomer = id(901);
+    await db.query('insert into auth.users(id) values($1)', [newcomer]);
+    await expect(
+      asUser(newcomer, "select public.submit_membership('Nueva persona','18+','','admin')"),
+    ).rejects.toThrow(/joven o líder/);
+    await expect(
+      asUser(newcomer, "select public.submit_membership('Nueva persona','13-17','','leader')"),
+    ).rejects.toThrow(/adulto/);
+    await expect(
+      asUser(admin, "select public.review_member($1,'approved','admin',false)", [member]),
+    ).rejects.toThrow(/reservado/);
+    await expect(
+      asUser(null, "select public.submit_membership('Intruso','18+','','leader')"),
+    ).rejects.toThrow(/permission denied/);
   });
 });
