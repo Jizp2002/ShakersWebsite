@@ -66,6 +66,8 @@ Los miembros de 13–17 años requieren confirmación de su responsable y no pue
 
 ## Netlify (alojamiento actual)
 
+Sitio público: https://ccbshakerscommunity.netlify.app. En Supabase, Site URL debe ser ese dominio y Redirect URLs debe incluir `https://ccbshakerscommunity.netlify.app/entrar**`. Un dominio omitido de esa lista hace que Auth use Site URL como retorno; no dejar localhost como Site URL de producción.
+
 1. Conecta el proyecto de Netlify a `Jizp2002/ShakersWebsite`, rama `main`.
 2. `netlify.toml` fija Node 22.18.0, `npm run build` y salida `dist`.
 3. La configuración pública de Supabase está en `.env.production`. No añadir contraseñas ni claves de servidor. Si existen variables en el panel de Netlify, comprobar que no estén vacías ni apunten a otro proyecto.

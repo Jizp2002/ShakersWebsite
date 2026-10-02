@@ -12,7 +12,7 @@ Verificado el 1 de octubre de 2026.
 - Cuenta `jisaac226@gmail.com` creada, con membresía aprobada y rol `admin`. Correo verificado en Auth, comprobado el 1 de octubre de 2026.
 - `.env.local` contiene la conexión real y está excluido del repositorio. El navegador solo recibe una clave pública.
 - Compilación conectada disponible en `http://localhost:4173`; la vista previa ya no usa la demo.
-- Site URL de Auth: `http://localhost:4173`. Redirect autorizado: `http://localhost:4173/entrar**`.
+- Site URL de Auth: `https://ccbshakerscommunity.netlify.app`. Redirect de producción: `https://ccbshakerscommunity.netlify.app/entrar**`. El retorno local se conserva solo para desarrollo.
 - Acceso por enlace de correo, con PKCE: abrir el enlace en el mismo navegador donde se solicitó.
 
 ## Verificaciones realizadas
@@ -28,7 +28,7 @@ El asesor de seguridad informa advertencias por funciones SECURITY DEFINER ejecu
 - Confirmar recepción del correo de prueba enviado con el SMTP de Gmail a `jisaac226@gmail.com`, y comprobar entrega a otra cuenta del piloto antes de invitar a toda la comunidad.
 - Google permanece deshabilitado hasta configurar sus credenciales OAuth. La interfaz oculta ese botón.
 - Turnstile pendiente de claves y configuración.
-- Publicar el sitio en su dominio HTTPS y actualizar Site URL y redirects antes de enviar invitaciones públicas.
+- Completar una sesión de acceso desde el correo recibido en el dominio publicado, en el mismo navegador donde se solicitó.
 - Comprobar recuperación de respaldos en un proyecto separado.
 
 En este proyecto se mantiene `VITE_AUTH_EMAIL_MODE=link`, y se conservan las plantillas de enlace de Supabase. Para cambiar a códigos, primero configurar SMTP y las plantillas, después usar `VITE_AUTH_EMAIL_MODE=code` y recompilar.
@@ -43,14 +43,24 @@ La portada personal prioriza encuentros con inscripción y muestra hora y lugar.
 
 Verificación: 22 pruebas unitarias/de permisos, pruebas de interfaz en escritorio y móvil (incluido recorte, persistencia, eliminación y galería) y cuatro pruebas del SDK con backend simulado. Comprobación remota: 20/20 tablas con RLS, buckets privados y edición de perfil denegada a anon. La prueba de carga real desde la cuenta del propietario sigue siendo parte del piloto.
 
-Cloudflare elegido para alojamiento gratuito. La CLI requiere iniciar sesión en la cuenta del propietario antes de obtener una URL permanente. No se ha publicado el sitio.
+Antecedente: inicialmente se preparó Cloudflare. El alojamiento actual es Netlify; véase el estado de producción al final de este documento.
 
 ## SMTP de Gmail
 
 Configuración guardada por el propietario y verificada después de recargar el panel: SMTP personalizado activo, `smtp.gmail.com`, puerto 465, remitente `Shakers · Comunidad` y cuenta `ijupiter226@gmail.com`. La contraseña de aplicación se introdujo directamente en Supabase; no se copió al proyecto ni a la conversación.
 
-Prueba desde el formulario real de Shakers: solicitud de enlace a `jisaac226@gmail.com` aceptada sin error. El destinatario debe confirmar recepción (incluido spam) y abrir el enlace en el mismo navegador. La aceptación de la solicitud no demuestra por sí sola entrega en bandeja de entrada. No se ha publicado el sitio; se mantiene la prioridad de verificar correo antes del alojamiento.
+Prueba desde el formulario real de Shakers: solicitud de enlace a `jisaac226@gmail.com` aceptada sin error. El destinatario debe confirmar recepción (incluido spam) y abrir el enlace en el mismo navegador. La aceptación de la solicitud no demuestra por sí sola entrega en bandeja de entrada. Esta prueba se realizó antes de publicar. El estado actual de Netlify aparece a continuación.
 
 ## Producción en Netlify
 
-El propietario informa que ya publicó en Netlify y solicita actualizar mediante push a `Jizp2002/ShakersWebsite/main`. Se corrigió el fallback automático a demo, se añadió `.env.production` con configuración exclusivamente pública y `netlify.toml` con la compilación. Pendiente conocer la URL exacta para verificar el despliegue remoto y sus redirects de Auth. No afirmar prueba de acceso desde producción hasta verificar ese dominio.
+El propietario informa que ya publicó en Netlify y solicita actualizar mediante push a `Jizp2002/ShakersWebsite/main`. Se corrigió el fallback automático a demo, se añadió `.env.production` con configuración exclusivamente pública y `netlify.toml` con la compilación. Dominio confirmado: `https://ccbshakerscommunity.netlify.app`. Verificado `/entrar` en el sitio publicado: formulario real de acceso y sin controles de demo.
+
+### Corrección de retorno a localhost — 1 de octubre de 2026
+
+Causa confirmada en el panel: Site URL y la única entrada de Redirect URLs todavía apuntaban a localhost. La aplicación ya envía el dominio actual mediante `window.location.origin`; Supabase sustituía el retorno de Netlify por su Site URL al no estar autorizado.
+
+Se guardó el dominio público como Site URL y se añadió `https://ccbshakerscommunity.netlify.app/entrar**` a Redirect URLs. Persistencia comprobada después de recargar el panel. La plantilla Magic link conserva `{{ .ConfirmationURL }}` y no contiene un destino local fijo.
+
+Verificación contra `/auth/v1/verify` con un token deliberadamente inválido, sin crear usuarios ni enviar correos: retorno predeterminado a Netlify; retorno autorizado a `/entrar?next=%2Fapp` conservado; dominio externo no autorizado rechazado y sustituido por Netlify. Estas comprobaciones validan la configuración de redirección, no una sesión completa ni entrega de correo. Solicitar un enlace nuevo desde el sitio público y abrirlo en el mismo navegador para completar la prueba personal.
+
+Evidencia: `docs/screenshots/production-auth-url.png`. El cambio remoto en Supabase tiene efecto inmediato y no depende de recompilar Netlify.
