@@ -17,13 +17,6 @@ export function Landing() {
   return (
     <div className="editorial-landing">
       <section className="hero editorial-hero">
-        <img
-          className="hero-photo"
-          src="/images/shakers-collage-v3.webp"
-          alt="Collage ilustrativo de amistad, música y fe"
-          fetchPriority="high"
-        />
-
         <div className="hero-content">
           <span className="hero-eyebrow">
             <span /> UNA GENERACIÓN CON PROPÓSITO
@@ -68,20 +61,24 @@ export function Landing() {
             </span>
           </div>
         </div>
-        <div className="hero-sticker" aria-hidden="true">
-          <Sparkles size={27} />
-          <span>
-            FE REAL.
-            <br />
-            GENTE REAL.
-            <br />
-            <b>TÚ TAMBIÉN.</b>
-          </span>
-          <span className="sticker-arrow">↗</span>
-        </div>
-        <div className="hero-caption">
-          <span>ENCUENTRA TU GENTE</span>
-          <span>VIVE TU PROPÓSITO ↗</span>
+        <div className="hero-media">
+          <img
+            className="hero-photo"
+            src="/images/shakers-collage-v3.webp"
+            alt="Collage ilustrativo de amistad, música y fe"
+            fetchPriority="high"
+          />
+          <div className="hero-sticker" aria-hidden="true">
+            <Sparkles size={27} />
+            <span>
+              FE REAL.
+              <br />
+              GENTE REAL.
+              <br />
+              <b>TÚ TAMBIÉN.</b>
+            </span>
+            <span className="sticker-arrow">↗</span>
+          </div>
         </div>
       </section>
       <div className="values-strip">
@@ -97,7 +94,7 @@ export function Landing() {
       <section className="belong-section" aria-label="Nuestra comunidad">
         <span className="eyebrow">TU FE. TU GENTE. TU HISTORIA.</span>
         <h2>
-          No viniste a mirar.
+          ¿Qué es Shakers?
           <br />
           <span>Viniste a ser parte.</span>
         </h2>

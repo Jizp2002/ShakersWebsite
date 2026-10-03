@@ -28,12 +28,27 @@ export function PublicLayout() {
   const location = useLocation();
   useEffect(() => setMenu(false), [location]);
   return (
-    <>
-      <header className="public-header">
+    <div className={`public-site${location.pathname === '/' ? ' public-home' : ''}`}>
+      <header className="public-header vintage-header">
+        <Link className="header-artwork" to="/" aria-label="Shakers, ir al inicio">
+          <img
+            src="/branding/shakers-vintage-banner.webp"
+            alt="Shakers · Una generación que agita"
+            width="1984"
+            height="793"
+            fetchPriority="high"
+          />
+        </Link>
         <div className="header-inner">
-          <Brand />
           <nav
+            id="public-navigation"
             aria-label="Navegación principal"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setMenu(false);
+                document.getElementById('public-menu-toggle')?.focus();
+              }
+            }}
             className={menu ? 'public-nav open' : 'public-nav'}
           >
             <NavLink to="/" end>
@@ -53,12 +68,15 @@ export function PublicLayout() {
               <ArrowUpRight size={16} />
             </Link>
             <button
+              id="public-menu-toggle"
               className="icon-button menu-toggle"
               aria-expanded={menu}
+              aria-controls="public-navigation"
               aria-label={menu ? 'Cerrar menú' : 'Abrir menú'}
               onClick={() => setMenu(!menu)}
             >
-              {menu ? <X /> : <Menu />}
+              {menu ? <X size={20} /> : <Menu size={20} />}
+              <span>{menu ? 'Cerrar' : 'Explorar'}</span>
             </button>
           </div>
         </div>
@@ -91,7 +109,7 @@ export function PublicLayout() {
           </span>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
 const navigation = [

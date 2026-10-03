@@ -8,6 +8,7 @@ import '@fontsource/poppins/latin-600.css';
 import '@fontsource/poppins/latin-700.css';
 import '@fontsource/poppins/latin-800.css';
 import './styles.css';
+import './public-layout.css';
 import './editorial.css';
 import App from './App';
 ReactDOM.createRoot(document.getElementById('root')!).render(
