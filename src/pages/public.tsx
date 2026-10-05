@@ -19,7 +19,7 @@ export function Landing() {
       <section className="hero editorial-hero">
         <div className="hero-content">
           <span className="hero-eyebrow">
-            <span /> UNA GENERACIÓN CON PROPÓSITO
+            <span /> UNA GENERACIÓN QUE NACIÓ A PROPÓSITO CON UN PROPÓSITO
           </span>
           <h1>
             Hechos para
@@ -34,8 +34,8 @@ export function Landing() {
             <span className="hero-period">.</span>
           </h1>
           <p>
-            Más que un encuentro. Un espacio para ser tú,
-            <br className="desktop-break" /> crecer en la fe y hacer la diferencia. Juntos.
+            Más que un encuentro. Es un espacio para ustedes,
+            <br className="desktop-break" /> para que crezcan en la fe . Juntos como familia.
           </p>
           <div className="hero-buttons">
             <Link to="/entrar" className="button button-primary">
@@ -64,8 +64,10 @@ export function Landing() {
         <div className="hero-media">
           <img
             className="hero-photo"
-            src="/images/shakers-collage-v3.webp"
-            alt="Collage ilustrativo de amistad, música y fe"
+            src="/images/shakers-community-collage.webp"
+            alt="Collage con fotos de jóvenes de Shakers, danza de alabanza y una Biblia abierta"
+            width="1448"
+            height="1086"
             fetchPriority="high"
           />
           <div className="hero-sticker" aria-hidden="true">
@@ -99,8 +101,7 @@ export function Landing() {
           <span>Viniste a ser parte.</span>
         </h2>
         <p>
-          Hay conversaciones que te cambian el día, canciones que se quedan contigo y personas con
-          las que puedes ser tú. Aquí queremos vivir todo eso, con Jesús en el centro.
+          Somos una generación que se levanta para sacudir al mundo. Nos mueve una pasión radical: encender el corazón de quienes están dispuestos a entregarlo todo por Dios. No somos un grupo más; somos una familia unida por el mismo fuego, decidida a reflejar el carácter y el poder de Jesús.
         </p>
         <div className="belong-links">
           <Link to="/encuentros">
@@ -160,8 +161,10 @@ export function Landing() {
         <section id="nosotros" className="about-section">
           <div className="about-image">
             <img
-              src="/images/friends.jpg"
-              alt="Un grupo de amigos compartiendo al aire libre"
+              src="/images/shakers-community-gathering.webp"
+              alt="La comunidad Shakers reunida durante una predicación"
+              width="1350"
+              height="900"
               loading="lazy"
             />
             <span className="image-label">
@@ -172,13 +175,11 @@ export function Landing() {
           <div className="about-copy">
             <span className="eyebrow">SOMOS SHAKERS</span>
             <h2>
-              La fe se vive.
-              <br />
-              La vida se comparte.
+              Transformando el presente, un paso a la vez.
             </h2>
             <p>
-              Somos jóvenes con preguntas, sueños y una misma esperanza. Creemos que seguir a Jesús
-              transforma lo cotidiano y que caminar acompañados hace la diferencia.
+              Más que un grupo, una familia donde caben tus preguntas, tus dudas y tus sueños.
+              Seguir a Jesús transforma la rutina y caminar en comunidad nos hace más fuertes.
             </p>
             <div className="about-points">
               <span>
