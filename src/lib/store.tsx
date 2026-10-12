@@ -22,6 +22,16 @@ function loadDemo(): Data {
     return demoSeed();
   }
 }
+function getInitialData(): Data {
+  if (isDemo) return loadDemo();
+  try {
+    const cached = sessionStorage.getItem('shakers-cached-state');
+    return cached ? { ...emptyData(), ...JSON.parse(cached) } : emptyData();
+  } catch {
+    return emptyData();
+  }
+}
+
 type Args = Record<string, unknown>;
 interface Store {
   data: Data;
@@ -30,6 +40,7 @@ interface Store {
   error: string;
   online: boolean;
   refresh: () => Promise<void>;
+  refreshTables?: (tables: Table[]) => Promise<void>;
   demoLogin: (role: Role | 'pending') => void;
   logout: () => Promise<void>;
   save: <T extends Table>(table: T, row: Row<T>) => Promise<void>;
@@ -44,7 +55,7 @@ interface Store {
 }
 const Context = createContext<Store | null>(null);
 export function Provider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Data>(emptyData);
+  const [data, setData] = useState<Data>(getInitialData);
   const [userId, setUserId] = useState<string | null>(
     isDemo ? sessionStorage.getItem(USER_KEY) : null,
   );
@@ -94,18 +105,60 @@ export function Provider({ children }: { children: ReactNode }) {
         }),
       );
       if (ticket === generation.current) {
-        setData(Object.fromEntries(responses) as unknown as Data);
+        const fullData = Object.fromEntries(responses) as unknown as Data;
+        setData(fullData);
+        try {
+          sessionStorage.setItem('shakers-cached-state', JSON.stringify(fullData));
+        } catch {}
         setError('');
       }
     } catch (e) {
       if (ticket === generation.current) {
-        setData(emptyData());
         setError(e instanceof Error ? e.message : 'No pudimos cargar la comunidad.');
       }
     } finally {
       if (ticket === generation.current) setLoading(false);
     }
   }, []);
+  const refreshTables = useCallback(
+    async (targets: Table[]) => {
+      if (isDemo || !supabase) {
+        await refresh();
+        return;
+      }
+      try {
+        const results = await Promise.all(
+          targets.map(async (table) => {
+            const all: unknown[] = [];
+            for (let offset = 0; ; offset += 1000) {
+              const { data: rows, error: e } = await supabase!
+                .from(table)
+                .select('*')
+                .order('id')
+                .range(offset, offset + 999);
+              if (e) throw e;
+              all.push(...(rows || []));
+              if (!rows || rows.length < 1000) break;
+            }
+            return [table, all] as const;
+          }),
+        );
+        setData((prev) => {
+          const next = { ...prev };
+          for (const [table, rows] of results) {
+            (next[table] as unknown[]) = rows;
+          }
+          try {
+            sessionStorage.setItem('shakers-cached-state', JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
   useEffect(() => {
     if (isDemo || configError) {
       void refresh();
@@ -123,7 +176,6 @@ export function Provider({ children }: { children: ReactNode }) {
         return;
       sessionUser.current = id;
       generation.current++;
-      setData(emptyData());
       setUserId(session?.user.id ?? null);
       setLoading(true);
       // Do not await Supabase calls inside the authentication callback.
@@ -139,12 +191,11 @@ export function Provider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const update = () => {
       if (navigator.onLine) {
-        window.location.reload();
+        setOnline(true);
+        void refresh();
         return;
       }
       setOnline(false);
-      generation.current++;
-      setData(emptyData());
     };
     const sync = () => {
       if (navigator.onLine && document.visibilityState === 'visible') void refresh();
@@ -187,7 +238,27 @@ export function Provider({ children }: { children: ReactNode }) {
       if (supabase) {
         const { error: e } = await supabase.rpc(name, args);
         if (e) throw new Error(e.message);
-        await refresh();
+        const rpcMap: Record<string, Table[]> = {
+          mark_notification: ['notifications'],
+          set_attendance: ['attendance'],
+          set_registration: ['registrations'],
+          submit_prayer: ['prayers'],
+          review_prayer: ['prayers'],
+          react_to_prayer: ['prayer_reactions'],
+          report_prayer: ['prayer_reports'],
+          cast_vote: ['votes'],
+          respond_assignment: ['assignments'],
+          submit_membership: ['memberships', 'profiles'],
+          review_member: ['memberships', 'profiles'],
+          save_profile: ['profiles'],
+          update_profile: ['profiles'],
+        };
+        const targets = rpcMap[name];
+        if (targets) {
+          await refreshTables(targets);
+        } else {
+          await refresh();
+        }
         return;
       }
       const d = loadDemo();
@@ -272,6 +343,10 @@ export function Provider({ children }: { children: ReactNode }) {
           m.status = args.p_status as typeof m.status;
           m.role = args.p_role as Role;
           m.guardian_confirmed = Boolean(args.p_guardian);
+          m.guardian_name = args.p_guardian_name ? String(args.p_guardian_name) : null;
+          m.guardian_phone = args.p_guardian_phone ? String(args.p_guardian_phone) : null;
+          m.guardian_verified_at = args.p_guardian ? now : null;
+          m.guardian_verified_by = args.p_guardian ? userId : null;
           break;
         }
         case 'respond_assignment': {
@@ -374,7 +449,7 @@ export function Provider({ children }: { children: ReactNode }) {
                 .single()
             : await supabase.from(table).upsert(row).select('id').single();
         if (result.error) throw new Error(result.error.message);
-        await refresh();
+        await refreshTables([table]);
         return;
       }
       const d = loadDemo();
@@ -456,7 +531,7 @@ export function Provider({ children }: { children: ReactNode }) {
       if (supabase) {
         const { error: e } = await supabase.from(table).delete().eq('id', id);
         if (e) throw new Error(e.message);
-        await refresh();
+        await refreshTables([table]);
         return;
       }
       const d = loadDemo();
@@ -524,6 +599,7 @@ export function Provider({ children }: { children: ReactNode }) {
         error,
         online,
         refresh,
+        refreshTables,
         demoLogin,
         logout,
         save,

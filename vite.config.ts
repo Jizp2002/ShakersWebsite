@@ -49,7 +49,7 @@ export default defineConfig(({ command, mode }) => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,woff2,png}'],
+          globPatterns: ['**/*.{js,css,html,svg,woff2,png,webp}'],
           globIgnores: ['branding/**'],
           navigateFallback: '/index.html',
           // Cache application assets only. Never cache API responses, member data, or uploads.

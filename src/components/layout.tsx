@@ -223,6 +223,12 @@ export function AppLayout() {
             <span>{label}</span>
           </NavLink>
         ))}
+        {staff && (
+          <NavLink to="/admin">
+            <LayoutDashboard size={21} />
+            <span>Gestión</span>
+          </NavLink>
+        )}
       </nav>
     </div>
   );

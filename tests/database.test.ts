@@ -38,6 +38,9 @@ beforeAll(async () => {
   await db.exec(
     await readFile('supabase/migrations/20261002003551_membership_role_requests.sql', 'utf8'),
   );
+  await db.exec(
+    await readFile('supabase/migrations/20261012000000_guardians_and_performance_indexes.sql', 'utf8'),
+  );
   for (const [i, name, role, status, age] of [
     [1, 'Coordinador', 'admin', 'approved', '18+'],
     [2, 'Líder', 'leader', 'approved', '18+'],
@@ -121,10 +124,27 @@ describe('Database permissions and domain operations', () => {
     await expect(
       asUser(admin, "select public.review_member($1,'approved','leader',true)", [minor]),
     ).rejects.toThrow(/adulto/);
-    await asUser(leader, "select public.review_member($1,'approved','member',true)", [minor]);
-    expect(
-      (await asUser(minor, 'select status from public.memberships where id=$1', [minor]))[0].status,
-    ).toBe('approved');
+    await asUser(
+      leader,
+      "select public.review_member($1,'approved','member',true,'Carlos Tutor','+34600112233')",
+      [minor],
+    );
+    const checked = await asUser<{
+      status: string;
+      guardian_confirmed: boolean;
+      guardian_name: string;
+      guardian_phone: string;
+      guardian_verified_by: string;
+    }>(
+      leader,
+      'select status, guardian_confirmed, guardian_name, guardian_phone, guardian_verified_by from public.memberships where id=$1',
+      [minor],
+    );
+    expect(checked[0].status).toBe('approved');
+    expect(checked[0].guardian_confirmed).toBe(true);
+    expect(checked[0].guardian_name).toBe('Carlos Tutor');
+    expect(checked[0].guardian_phone).toBe('+34600112233');
+    expect(checked[0].guardian_verified_by).toBe(leader);
   });
   it('makes registrations idempotent and rejects overbooking', async () => {
     await asUser(member, 'select public.set_registration($1,true)', [event]);

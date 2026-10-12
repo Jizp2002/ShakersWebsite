@@ -16,3 +16,4 @@ dist-connected/
 
 dist-demo/
 supabase/.temp/
+*:Zone.Identifier

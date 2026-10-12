@@ -45,7 +45,8 @@ function Scroll() {
   return null;
 }
 function Application() {
-  const { loading, error, online, message, refresh } = useStore();
+  const { data, loading, error, online, message, refresh } = useStore();
+  const hasContent = data.events.length > 0 || data.resources.length > 0;
   return (
     <BrowserRouter>
       <Scroll />
@@ -53,7 +54,13 @@ function Application() {
         Saltar al contenido
       </a>
       <DemoBar />
-      {!online ? (
+      {!online && (
+        <div className="offline-banner" role="status">
+          <WifiOff size={15} />
+          <span>Modo lectura sin conexión. Los cambios se sincronizarán al reconectarte.</span>
+        </div>
+      )}
+      {!online && !hasContent ? (
         <main id="main" className="offline-page">
           <WifiOff size={38} />
           <h1>Volvemos a conectar en un momento.</h1>
@@ -70,9 +77,9 @@ function Application() {
             <RefreshCw size={17} /> Reintentar
           </button>
         </main>
-      ) : loading ? (
+      ) : loading && !hasContent ? (
         <Loading />
-      ) : error ? (
+      ) : error && !hasContent ? (
         <main id="main" className="offline-page">
           <h1>No pudimos cargar este espacio.</h1>
           <p role="alert">{error}</p>

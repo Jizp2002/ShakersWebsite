@@ -13,6 +13,10 @@ export interface Membership {
   role: Role;
   status: Status;
   guardian_confirmed: boolean;
+  guardian_name?: string | null;
+  guardian_phone?: string | null;
+  guardian_verified_at?: string | null;
+  guardian_verified_by?: string | null;
   created_at: string;
 }
 export interface Event {

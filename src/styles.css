@@ -320,6 +320,26 @@ strong {
   min-height: 28px;
   white-space: nowrap;
 }
+.offline-banner {
+  background: #2a1f18;
+  color: #fbd38d;
+  padding: 8px 24px;
+  font-size: 11px;
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #78350f;
+}
+:root[data-theme='light'] .offline-banner {
+  background: #fffbeb;
+  color: #92400e;
+  border-bottom: 1px solid #fde68a;
+}
 .public-header {
   height: 87px;
   background: var(--surface);
@@ -4411,4 +4431,85 @@ h2 {
   .public-header .brand-mark {
     display: none;
   }
+}
+
+/* Onboarding visual steps */
+.onboarding-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 22px 0;
+  text-align: left;
+}
+.tracker-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(125, 125, 125, 0.04);
+  transition: all 0.2s ease;
+}
+.tracker-step.completed {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.07);
+}
+.tracker-step.current {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.tracker-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.tracker-step.completed .tracker-icon {
+  background: #10b981;
+  color: white;
+}
+.tracker-step.current .tracker-icon {
+  background: #3b82f6;
+  color: white;
+}
+.tracker-step.future .tracker-icon {
+  background: var(--border);
+  color: var(--muted);
+}
+.tracker-content h4 {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.tracker-content p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.minor-safety-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.09);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin: 16px 0;
+  text-align: left;
+}
+.minor-safety-banner svg {
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 2px;
 }

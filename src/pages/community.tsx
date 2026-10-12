@@ -70,10 +70,28 @@ export function PollCard({ poll }: { poll: Poll }) {
     </article>
   );
 }
+export function parsePrayerBody(body: string) {
+  const match = body.match(/^\[(.*?)\]\s*([\s\S]*)$/);
+  if (match) {
+    return { category: match[1], content: match[2] };
+  }
+  return { category: null, content: body };
+}
+
+export const PRAYER_CATEGORIES = [
+  'General',
+  'Familia',
+  'Salud',
+  'Gratitud',
+  'Fe y propósito',
+  'Estudios y trabajo',
+] as const;
+
 export function Community() {
   const { data, userId, rpc } = useStore();
   const { profile } = useMe();
   const [tab, setTab] = useState('Muro de oración');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
   const [compose, setCompose] = useState(false);
   const [report, setReport] = useState<string | null>(null);
   const [reason, setReason] = useState('');
@@ -83,6 +101,11 @@ export function Community() {
       ? p.user_id === userId
       : p.visibility === 'community' && p.status === 'approved',
   );
+  const filteredPrayers = prayers.filter((p) => {
+    if (selectedCategory === 'Todas' || tab !== 'Muro de oración') return true;
+    const { category } = parsePrayerBody(p.body);
+    return category === selectedCategory;
+  });
   const poll = data.polls
     .filter((p) => p.status === 'published')
     .sort((a, b) => b.closes_at.localeCompare(a.closes_at))[0];
@@ -106,12 +129,40 @@ export function Community() {
                 key={t}
                 aria-pressed={tab === t}
                 className={`chip ${tab === t ? 'active' : ''}`}
-                onClick={() => setTab(t)}
+                onClick={() => {
+                  setTab(t);
+                  if (t !== 'Muro de oración') setSelectedCategory('Todas');
+                }}
               >
                 {t}
               </button>
             ))}
           </div>
+
+          {tab === 'Muro de oración' && (
+            <div
+              className="chips"
+              style={{
+                marginBottom: '16px',
+                overflowX: 'auto',
+                paddingBottom: '4px',
+                display: 'flex',
+                gap: '8px',
+              }}
+            >
+              {['Todas', ...PRAYER_CATEGORIES.filter((c) => c !== 'General')].map((cat) => (
+                <button
+                  key={cat}
+                  className={`chip ${selectedCategory === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{ fontSize: '13px', padding: '6px 12px' }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
           <ErrorText error={error} />
           {tab === 'Avisos' ? (
             data.announcements
@@ -128,8 +179,9 @@ export function Community() {
                   <small className="muted">Vigente hasta el {date(a.expires_at)}</small>
                 </article>
               ))
-          ) : prayers.length ? (
-            prayers.map((p) => {
+          ) : filteredPrayers.length ? (
+            filteredPrayers.map((p) => {
+              const { category, content } = parsePrayerBody(p.body);
               const reacted = data.prayer_reactions.some(
                 (r) => r.prayer_id === p.id && r.user_id === userId,
               );
@@ -143,6 +195,7 @@ export function Community() {
                       <strong>{p.author_label}</strong>
                       <small>{date(p.created_at)}</small>
                     </div>
+                    {category && <Tag color="blue">{category}</Tag>}
                     {p.visibility === 'private' && <Tag>Solo coordinación</Tag>}
                     {tab === 'Mis peticiones' && (
                       <Tag color={p.status === 'approved' ? 'teal' : 'orange'}>
@@ -154,7 +207,7 @@ export function Community() {
                       </Tag>
                     )}
                   </div>
-                  <p>{p.body}</p>
+                  <p>{content}</p>
                   {p.visibility === 'community' && p.status === 'approved' && (
                     <div className="prayer-actions">
                       <button
@@ -247,6 +300,7 @@ export function Community() {
 function PrayerForm({ close }: { close: () => void }) {
   const { rpc } = useStore();
   const [body, setBody] = useState('');
+  const [category, setCategory] = useState<string>('General');
   const [visibility, setVisibility] = useState('private');
   const [anonymous, setAnonymous] = useState(false);
   const { act, error, pending } = useAction();
@@ -255,10 +309,12 @@ function PrayerForm({ close }: { close: () => void }) {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          const finalBody =
+            category !== 'General' ? `[${category}] ${body.trim()}` : body.trim();
           void act(
             () =>
               rpc('submit_prayer', {
-                p_body: body,
+                p_body: finalBody,
                 p_visibility: visibility,
                 p_anonymous: anonymous,
               }),
@@ -268,6 +324,16 @@ function PrayerForm({ close }: { close: () => void }) {
           });
         }}
       >
+        <label>
+          Tema o categoría
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            {PRAYER_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat === 'General' ? 'General (sin tema específico)' : cat}
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Tu petición
           <textarea

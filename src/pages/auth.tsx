@@ -7,6 +7,7 @@ import {
   Clock3,
   LockKeyhole,
   Mail,
+  RefreshCw,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -337,13 +338,14 @@ export function Login() {
 }
 const locationOrigin = () => window.location.origin;
 export function MembershipGate() {
-  const { data, userId, rpc, logout } = useStore();
+  const { data, userId, rpc, logout, refresh } = useStore();
   const { profile, membership } = useMe();
   const { act, error, pending } = useAction();
   const [name, setName] = useState(profile?.name || '');
   const [age, setAge] = useState<'13-17' | '18+'>('18+');
   const [interests, setInterests] = useState('');
   const [requestedRole, setRequestedRole] = useState<'member' | 'leader'>('member');
+  const [checking, setChecking] = useState(false);
   useEffect(() => {
     if (!supabase) return;
     let active = true;
@@ -365,31 +367,118 @@ export function MembershipGate() {
         {blocked ? (
           <>
             <span className="auth-symbol">
-              {membership.status === 'pending' ? <Clock3 size={30} /> : <ShieldCheck size={30} />}
+              {membership.status === 'pending' ? <Clock3 size={32} /> : <ShieldCheck size={32} />}
             </span>
-            <Tag>
-              {membership.status === 'pending' ? 'SOLICITUD RECIBIDA' : 'ESTADO DE TU CUENTA'}
+            <Tag color={membership.status === 'pending' ? 'teal' : 'orange'}>
+              {membership.status === 'pending' ? 'SOLICITUD EN CURSO' : 'ESTADO DE TU CUENTA'}
             </Tag>
             <h1>
               {membership.status === 'pending'
-                ? 'Ya diste el primer paso.'
+                ? `¡Gracias, ${profile?.name || 'amigo'}!`
                 : membership.status === 'suspended'
                   ? 'Tu acceso está suspendido.'
                   : 'Tu solicitud no fue aprobada.'}
             </h1>
             <p>
               {membership.status === 'pending'
-                ? 'Un líder revisará tu solicitud. Cuando esté aprobada podrás entrar a tu comunidad desde aquí.'
+                ? 'Un líder del ministerio revisará tu solicitud para activar tu acceso a la comunidad.'
                 : 'Conversa con la coordinación del ministerio para revisar tu situación.'}
             </p>
-            {profile?.age_group === '13-17' && membership.status === 'pending' && (
-              <div className="notice">
-                Un líder confirmará la autorización de tu responsable antes de activar tu acceso.
-              </div>
+
+            {membership.status === 'pending' && (
+              <>
+                <div className="onboarding-tracker">
+                  <div className="tracker-step completed">
+                    <div className="tracker-icon">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <div className="tracker-content">
+                      <h4>1. Solicitud enviada</h4>
+                      <p>
+                        Datos registrados para{' '}
+                        {membership.requested_role === 'leader'
+                          ? 'participar como líder'
+                          : 'la comunidad juvenil'}
+                        .
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="tracker-step current">
+                    <div className="tracker-icon">
+                      <Clock3 size={16} />
+                    </div>
+                    <div className="tracker-content">
+                      <h4>2. Revisión del equipo</h4>
+                      <p>
+                        Los líderes y la coordinación revisan cada ingreso para garantizar un
+                        entorno seguro y de confianza mutua.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="tracker-step future">
+                    <div className="tracker-icon">3</div>
+                    <div className="tracker-content">
+                      <h4>3. Acceso activo</h4>
+                      <p>
+                        Podrás chatear, unirte a tu equipo de servicio, pedir oración y ver todo el
+                        contenido privado.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {profile?.age_group === '13-17' && (
+                  <div className="minor-safety-banner">
+                    <ShieldCheck size={20} />
+                    <div>
+                      <strong>Cuidado y protección juvenil:</strong>
+                      <br />
+                      Al ser menor de 18 años, un líder o coordinador confirmará la autorización de
+                      tu tutor legal antes de habilitar tu acceso completo.
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    marginTop: '16px',
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="button button-outline full"
+                    disabled={checking || pending}
+                    onClick={() => {
+                      setChecking(true);
+                      void refresh().finally(() => setChecking(false));
+                    }}
+                  >
+                    <RefreshCw
+                      size={16}
+                      className={checking ? 'animate-spin' : undefined}
+                      style={{
+                        animation: checking ? 'spin 1s linear infinite' : undefined,
+                      }}
+                    />
+                    {checking ? 'Comprobando…' : 'Comprobar si ya fui aprobado'}
+                  </button>
+                  <Link to="/encuentros" className="button button-primary full">
+                    Explorar encuentros abiertos <ArrowRight size={18} />
+                  </Link>
+                </div>
+              </>
             )}
-            <Link to="/encuentros" className="button button-primary">
-              Explorar encuentros <ArrowRight size={18} />
-            </Link>
+
+            {membership.status !== 'pending' && (
+              <Link to="/encuentros" className="button button-primary">
+                Explorar encuentros <ArrowRight size={18} />
+              </Link>
+            )}
           </>
         ) : (
           <>
