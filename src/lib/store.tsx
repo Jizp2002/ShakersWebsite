@@ -25,11 +25,53 @@ function loadDemo(): Data {
 function getInitialData(): Data {
   if (isDemo) return loadDemo();
   try {
-    const cached = sessionStorage.getItem('shakers-cached-state');
+    const cached =
+      localStorage.getItem('shakers-cached-state') ||
+      sessionStorage.getItem('shakers-cached-state');
     return cached ? { ...emptyData(), ...JSON.parse(cached) } : emptyData();
   } catch {
     return emptyData();
   }
+}
+
+function syncAuthCookie(session: { user?: { id: string }; expires_in?: number } | null | undefined) {
+  if (typeof document === 'undefined') return;
+  if (session?.user?.id) {
+    const maxAge = session.expires_in || 3600 * 24 * 30;
+    document.cookie = `sb-user-id=${encodeURIComponent(session.user.id)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  } else {
+    document.cookie = 'sb-user-id=; path=/; max-age=0; SameSite=Lax';
+  }
+}
+
+function getInitialUserId(): string | null {
+  if (typeof window === 'undefined') return null;
+  if (isDemo) {
+    return localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+  }
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (
+        k &&
+        ((k.startsWith('sb-') && k.endsWith('-auth-token')) || k === 'shakers-auth-token')
+      ) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const id = parsed?.user?.id || parsed?.currentSession?.user?.id;
+          if (id) return id;
+        }
+      }
+    }
+  } catch {}
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)sb-user-id=([^;]+)/);
+    if (match && match[1]) {
+      return decodeURIComponent(match[1]);
+    }
+  } catch {}
+  return null;
 }
 
 type Args = Record<string, unknown>;
@@ -56,9 +98,7 @@ interface Store {
 const Context = createContext<Store | null>(null);
 export function Provider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<Data>(getInitialData);
-  const [userId, setUserId] = useState<string | null>(
-    isDemo ? sessionStorage.getItem(USER_KEY) : null,
-  );
+  const [userId, setUserId] = useState<string | null>(getInitialUserId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -108,6 +148,7 @@ export function Provider({ children }: { children: ReactNode }) {
         const fullData = Object.fromEntries(responses) as unknown as Data;
         setData(fullData);
         try {
+          localStorage.setItem('shakers-cached-state', JSON.stringify(fullData));
           sessionStorage.setItem('shakers-cached-state', JSON.stringify(fullData));
         } catch {}
         setError('');
@@ -149,6 +190,7 @@ export function Provider({ children }: { children: ReactNode }) {
             (next[table] as unknown[]) = rows;
           }
           try {
+            localStorage.setItem('shakers-cached-state', JSON.stringify(next));
             sessionStorage.setItem('shakers-cached-state', JSON.stringify(next));
           } catch {}
           return next;
@@ -168,6 +210,7 @@ export function Provider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase!.auth.onAuthStateChange((event, session) => {
       const id = session?.user.id ?? null;
+      syncAuthCookie(session);
       // Token refreshes and focus events must not destroy open forms or password recovery.
       if (
         sessionUser.current === id &&
@@ -176,7 +219,16 @@ export function Provider({ children }: { children: ReactNode }) {
         return;
       sessionUser.current = id;
       generation.current++;
-      setUserId(session?.user.id ?? null);
+      setUserId(id);
+      if (!id) {
+        setLoading(false);
+        setData(emptyData());
+        try {
+          localStorage.removeItem('shakers-cached-state');
+          sessionStorage.removeItem('shakers-cached-state');
+        } catch {}
+        return;
+      }
       setLoading(true);
       // Do not await Supabase calls inside the authentication callback.
       setTimeout(() => {
@@ -546,13 +598,22 @@ export function Provider({ children }: { children: ReactNode }) {
     });
   const demoLogin = (role: Role | 'pending') => {
     if (!isDemo) return;
-    sessionStorage.setItem(USER_KEY, demoIds[role]);
-    setUserId(demoIds[role]);
+    const id = demoIds[role];
+    localStorage.setItem(USER_KEY, id);
+    sessionStorage.setItem(USER_KEY, id);
+    setUserId(id);
     setData(loadDemo());
   };
   const logout = async () => {
     generation.current++;
     setData(emptyData());
+    try {
+      localStorage.removeItem('shakers-cached-state');
+      sessionStorage.removeItem('shakers-cached-state');
+      localStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(USER_KEY);
+      syncAuthCookie(null);
+    } catch {}
     if (supabase) {
       const { error: e } = await supabase.auth.signOut();
       if (e) {
@@ -560,7 +621,6 @@ export function Provider({ children }: { children: ReactNode }) {
         throw new Error('No se pudo cerrar la sesión. Intenta de nuevo con conexión.');
       }
     } else {
-      sessionStorage.removeItem(USER_KEY);
       setUserId(null);
       setData(loadDemo());
     }

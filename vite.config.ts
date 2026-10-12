@@ -47,6 +47,29 @@ export default defineConfig(({ command, mode }) => {
             { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
             { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
           ],
+          shortcuts: [
+            {
+              name: 'Mi espacio',
+              short_name: 'Mi espacio',
+              description: 'Perfil y ajustes de comunidad',
+              url: '/app/mi-espacio',
+              icons: [{ src: '/icon-192.png', sizes: '192x192' }],
+            },
+            {
+              name: 'Agenda',
+              short_name: 'Agenda',
+              description: 'Próximos encuentros y eventos',
+              url: '/app/agenda',
+              icons: [{ src: '/icon-192.png', sizes: '192x192' }],
+            },
+            {
+              name: 'Comunidad',
+              short_name: 'Comunidad',
+              description: 'Muro de oración y avisos',
+              url: '/app/comunidad',
+              icons: [{ src: '/icon-192.png', sizes: '192x192' }],
+            },
+          ],
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,woff2,png,webp}'],

@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react';
-import { Brand, ErrorText, Tag, useAction } from '../components/ui';
+import { Brand, ErrorText, Loading, Tag, useAction } from '../components/ui';
 import { useMe, useStore } from '../lib/store';
 import { isDemo, supabase } from '../lib/supabase';
 import { safeNext } from '../lib/utils';
@@ -338,7 +338,7 @@ export function Login() {
 }
 const locationOrigin = () => window.location.origin;
 export function MembershipGate() {
-  const { data, userId, rpc, logout, refresh } = useStore();
+  const { data, userId, rpc, logout, refresh, loading } = useStore();
   const { profile, membership } = useMe();
   const { act, error, pending } = useAction();
   const [name, setName] = useState(profile?.name || '');
@@ -357,6 +357,7 @@ export function MembershipGate() {
       active = false;
     };
   }, []);
+  if (loading && !userId) return <Loading />;
   if (!userId)
     return <Navigate to={`/entrar?next=${encodeURIComponent(window.location.pathname)}`} replace />;
   const blocked = membership && ['pending', 'suspended', 'rejected'].includes(membership.status);
@@ -374,7 +375,7 @@ export function MembershipGate() {
             </Tag>
             <h1>
               {membership.status === 'pending'
-                ? `¡Gracias, ${profile?.name || 'amigo'}!`
+                ? 'Ya diste el primer paso.'
                 : membership.status === 'suspended'
                   ? 'Tu acceso está suspendido.'
                   : 'Tu solicitud no fue aprobada.'}

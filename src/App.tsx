@@ -23,14 +23,24 @@ const ProfilePage = lazy(() => import('./pages/profile').then((m) => ({ default:
 const Admin = lazy(() => import('./pages/admin').then((m) => ({ default: m.Admin })));
 
 function Guard() {
-  const { userId } = useStore();
+  const { userId, loading } = useStore();
   const { membership } = useMe();
-  if (!userId || membership?.status !== 'approved') return <MembershipGate />;
+  if (loading && !userId) return <Loading />;
+  if (!userId)
+    return <Navigate to={`/entrar?next=${encodeURIComponent(window.location.pathname)}`} replace />;
+  if (loading && !membership) return <Loading />;
+  if (membership && membership.status !== 'approved') return <MembershipGate />;
+  if (!membership && !loading) return <MembershipGate />;
   return <AppLayout />;
 }
 function Scroll() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
+    if (pathname.startsWith('/app') || pathname.startsWith('/admin')) {
+      try {
+        localStorage.setItem('shakers-active-route', pathname);
+      } catch {}
+    }
     if (hash)
       setTimeout(
         () =>
